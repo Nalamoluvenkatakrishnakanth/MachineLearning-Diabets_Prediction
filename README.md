@@ -12,7 +12,9 @@ Data visualization with graphs for better understanding.
 -Required libraries: streamlit, pandas, scikit-learn, matplotlib
 ### Usage
 i) Open the Streamlit app in a browser.
+
 ii) Enter required medical details such as Glucose Level, BMI, and Age.
+
 iii) Click the "Predict" button to get the result.
 ### Model Explanation
 i)Algorithm: Logistic Regression
