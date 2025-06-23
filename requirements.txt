@@ -1,7 +1,6 @@
-streamlit
-scikit-learn
+streamlit==1.26.0
 pandas
 numpy
+scikit-learn==1.1.3
 joblib
-seaborn
 python-3.10
