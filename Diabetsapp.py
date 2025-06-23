@@ -3,61 +3,55 @@ import numpy as np
 import pandas as pd
 import joblib
 
-#set up the configuration
-st.set_page_config(page_title="Diabets Predicition",layout='centered')
+# Set up the page
+st.set_page_config(page_title="Diabetes Prediction", layout="centered")
 
-#Load the model
-model1 = joblib.load("Diabets.pkl")
+# Load the model safely
+@st.cache_resource  # Ensures model loads only once and stays in memory
+def load_model():
+    try:
+        model = joblib.load("Diabets.pkl")
+        return model
+    except Exception as e:
+        st.error(f"Failed to load model: {str(e)}")
+        return None
 
-# Streamlit UI to take inputs
-with st.form("tip_form"):
-    Pregnancies = st.number_input("Pregnancies:", min_value=0, max_value=6,value=2,step=1)
-    Glucose = st.number_input("Glucose",min_value=40,max_value=300,value=40)
-    BloodPressure = st.number_input("BloodPressure",min_value=40,max_value=200,value=50)
-    SkinThickness = st.number_input("SkinThickness",min_value=0,max_value=200,value=10)
-    Insulin = st.number_input("Insulin",min_value=0,max_value=200,value=30)
-    BMI = st.number_input("BMI", min_value=1.0,max_value=200.0, value=2.0)
-    DiabetesPedigreeFunction = st.number_input("DiabetesPedigreeFunction", min_value=0.0,max_value=100.0, value=1.0)
-    Age = st.number_input("Age", min_value=5,max_value=200, value=10)
+model1 = load_model()
 
-    # Submit button
-    submitted = st.form_submit_button("Predict Tip")
+# UI for input
+st.title("Diabetes Predictor")
+st.markdown("Enter the health details below:")
 
+with st.form("prediction_form"):
+    Pregnancies = st.number_input("Pregnancies", min_value=0, max_value=20, value=2)
+    Glucose = st.number_input("Glucose Level", min_value=0, max_value=300, value=120)
+    BloodPressure = st.number_input("Blood Pressure", min_value=0, max_value=200, value=70)
+    SkinThickness = st.number_input("Skin Thickness", min_value=0, max_value=100, value=20)
+    Insulin = st.number_input("Insulin Level", min_value=0, max_value=900, value=80)
+    BMI = st.number_input("BMI", min_value=0.0, max_value=70.0, value=25.0, format="%.1f")
+    DiabetesPedigreeFunction = st.number_input("Pedigree Function", min_value=0.0, max_value=2.5, value=0.5, format="%.2f")
+    Age = st.number_input("Age", min_value=1, max_value=120, value=33)
 
-# Prediction on form submission
-if submitted:
+    submitted = st.form_submit_button("Predict")
+
+if submitted and model1:
     input_df = pd.DataFrame([{
-        'Pregnancies':Pregnancies,
-        'Glucose':Glucose,
-        "BloodPressure":BloodPressure,
-        'SkinThickness':SkinThickness,
-        "Insulin":Insulin,
-        "BMI":BMI,
-        "DiabetesPedigreeFunction":DiabetesPedigreeFunction,
-        "Age":Age
+        'Pregnancies': Pregnancies,
+        'Glucose': Glucose,
+        'BloodPressure': BloodPressure,
+        'SkinThickness': SkinThickness,
+        'Insulin': Insulin,
+        'BMI': BMI,
+        'DiabetesPedigreeFunction': DiabetesPedigreeFunction,
+        'Age': Age
     }])
 
-    # Print input data
-    st.write("Input Data:")
+    st.subheader("Entered Data")
     st.dataframe(input_df)
 
-    # Check the model type again just before prediction
-    st.write(f"Model type before prediction: {type(model1)}")  # Should show <class 'sklearn.pipeline.Pipeline'>
-   
     try:
-        # Predict the tip
         prediction = model1.predict(input_df)
-
-        # Ensure the output is a scalar value
-        predicted_tip = prediction[0] if isinstance(prediction, (list, np.ndarray)) else prediction
-
-        # Display the predicted tip
-        if predicted_tip == 0:
-            #st.success(f"Outcomes: *{predicted_tip:}*")
-            st.success("Diabets: Yes")
-        else:
-            st.success("Diabets: No")
-            
+        outcome = "Yes" if prediction[0] == 1 else "No"
+        st.success(f"Diabetes Prediction: **{outcome}**")
     except Exception as e:
-        st.write('i am here in exception')
-        st.error(f" Error: {str(e)}")
+        st.error(f"Prediction error: {str(e)}")
